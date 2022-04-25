@@ -1,0 +1,89 @@
+from tkinter import *
+from tkinter import ttk
+#import ImageTk
+from http import client
+import urllib
+import json
+from urllib import response
+import requests
+import os
+import ctypes
+
+def main():
+    #global variables made so because tkinter is weird and wasnt showing them unless i made it global because why not
+    global img_PB
+    def Selected1(event):
+        global img_P
+        
+        #the program preveiws the pokemon in the window
+        img_P = PhotoImage(file=str(cbo_pok_sel.get() + '.png'))
+        label.configure(image=img_P)
+        label.pack()
+        
+    def btn_click():
+        #the button sets the wallpaper
+        #this program is using my path but it should be the same minus the user name probably
+        path = 'C:\\Users\\WINDOWS\\' + cbo_pok_sel.get() + '.png'
+        print(path)
+        ctypes.windll.user32.SystemParametersInfoW(20, 0, path , 0)
+        print("iyahvbefyiugfe8ygfaso8rfoa87ywegfo8ywergtf gf oa8weg4rq gahpg 97")
+
+    #Connection made to the api as well as a list declared so that items can be appended to it later
+    pokeApi = client.HTTPSConnection('pokeapi.co',443)
+    Poke_List = []
+
+    #GUI is created
+    root = Tk()
+    root.title("My Awesome GUI")
+    root.geometry("500x500")
+    
+    #Refrence frames are also created
+    frm_mid_mid = ttk.Frame(root, relief="ridge")
+    frm_mid_mid.grid(row=2, column=0, padx=(10,5), pady=10)
+
+    frm_btm_mid = ttk.Frame(root, relief="ridge")
+    frm_btm_mid.grid(row=1, column=0, padx=(10,5), pady=10)
+
+    frm_btm_mid2 = ttk.Frame(root, relief="ridge")
+    frm_btm_mid2.grid(row=0, column=0,padx=(10,5), pady=10)
+
+    #btn_BackSet = ttk.Button(frm_mid_mid, text='Set as wallpaper', command=btn_click)
+    #btn_BackSet.grid(padx=10, pady=10)
+    
+    #fills list with 20 pokemons as well as downloads the sprites for them
+    for x in range(20):
+        pokeApi.request('GET', '/api/v2/pokemon/' + str(x+1))
+        response = pokeApi.getresponse()
+        print(response)
+        jsonData = response.read().decode()
+        dictionary = json.loads(jsonData)
+        Poke_List.append(dictionary['name'])
+        image_url = dictionary['sprites']['front_default']
+        img_data = requests.get(image_url).content
+
+        with open(dictionary['name'] + ".png", 'wb') as handler:
+            handler.write(img_data)
+
+    #downloads a cool little pokeball and puts it in as a place holder that does not show but its the thought that counts
+    Pokeball_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Pok%C3%A9_Ball_icon.svg/640px-Pok%C3%A9_Ball_icon.svg.png"
+    img_data1 = requests.get(Pokeball_url).content
+    with open('Ball_Sprite.png', 'wb') as handler:
+        handler.write(img_data1)
+    img_PB = PhotoImage(file='Ball_Sprite.png')
+    label = Label(frm_btm_mid2, image=img_PB)
+
+    #Creates the dropdown and populates it with the pokemons aswell as triggers the Selected1 function when an pokemon is selected
+    cbo_pok_sel = ttk.Combobox(frm_btm_mid, values=Poke_List)
+    cbo_pok_sel.current(0)
+    cbo_pok_sel.bind("<<ComboboxSelected>>", Selected1)
+    cbo_pok_sel.pack()
+
+    #button is created to trigger the wallpaper setting thing
+    btn_BackSet = ttk.Button(frm_mid_mid, text='Set as wallpaper', command=btn_click)
+    btn_BackSet.grid(padx=10, pady=10)
+
+
+    root.mainloop()
+
+
+main()
